@@ -1,5 +1,4 @@
 import Expense from "../models/Expense.js";
-import User from "../models/User.js";
 
 export const addExpense=async(req,res)=>{
     try{
