@@ -3,6 +3,7 @@ import groq from "../config/groqClient.js";
 import User from "../models/User.js";
 import { sendBudgetAlertsEmail } from "../config/emailConfig.js";
 import { sendBudgetAlertsWhatsapp } from "../config/whatsappConfig.js";
+import PDFDocument from "pdfkit"
 
 export const addExpense=async(req,res)=>{
     try{
@@ -134,5 +135,47 @@ export const analyzeData=async(req,res)=>{
     }
     catch(err){
         res.status(500).json({message:"AI cannot analyze your data at the moment!",error:err.message});
+    }
+};
+
+export const expensePDF=async(req,res)=>{
+    try{
+        const userId=req.user._id;
+
+        const expenses=await Expense.find({user:userId}).sort({date:1});
+
+        if(expenses.length===0){
+            return res.status(404).json({message:"No expenses found to export!"});
+        }
+
+        res.setHeader("Content-Type","application/pdf");
+        res.setHeader("Content-Disposition","attachment;filename=all_expenses.pdf");
+
+        const doc=new PDFDocument();
+        doc.pipe(res);
+
+        doc.fontSize(20).text("Expense Report", { align: "center" });
+        doc.moveDown();
+
+        doc.fontSize(12).text(`Generated on: ${new Date().toLocaleDateString()}`);
+        doc.moveDown(1);
+
+        let total = 0;
+        expenses.forEach((exp, i) => {
+        doc.text(
+            `${i + 1}. ${exp.title}  |  ${exp.amount} rupees  |  ${exp.category}  |  ${exp.date.toDateString()}`
+        );
+        if (exp.notes) doc.text(`   Notes: ${exp.notes}`);
+        doc.moveDown(0.5);
+        total += exp.amount;
+        });
+
+        doc.moveDown();
+        doc.fontSize(14).text(`Total Spent: ${total} rupees`, { align: "right" });
+
+        doc.end();
+    }
+    catch(err){
+        res.status(500).json({message:"Error generating PDF",error:err.message});
     }
 };

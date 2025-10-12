@@ -1,5 +1,5 @@
 import express from "express";
-import { addExpense,getExpense,deleteExpense,updateExpense,analyzeData } from "../controllers/expenseController.js";
+import { addExpense,getExpense,deleteExpense,updateExpense,analyzeData,expensePDF } from "../controllers/expenseController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
 const router=express.Router();
@@ -9,5 +9,6 @@ router.get('/',protect,getExpense);
 router.delete('/:id',protect,deleteExpense);
 router.patch('/:id',protect,updateExpense);
 router.post('/analyze',protect,analyzeData);
+router.get('/exportpdf',protect,expensePDF);
 
 export default router;
