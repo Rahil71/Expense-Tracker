@@ -1,5 +1,8 @@
 import Expense from "../models/Expense.js";
 import groq from "../config/groqClient.js";
+import User from "../models/User.js";
+import { sendBudgetAlertsEmail } from "../config/emailConfig.js";
+import { sendBudgetAlertsWhatsapp } from "../config/whatsappConfig.js";
 
 export const addExpense=async(req,res)=>{
     try{
@@ -13,6 +16,34 @@ export const addExpense=async(req,res)=>{
             notes
         });
         await expense.save();
+
+        const user=await User.findById(req.user._id);
+        if(user.budgetLimit && user.budgetLimit>0){
+            const startOfMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
+            const endOfMonth=new Date(new Date().getFullYear(), new Date().getMonth()+1,0);
+
+            const monthlyExpenses=await Expense.aggregate([
+                {
+                    $match:{
+                        user:user._id,
+                        date:{$gte:startOfMonth,$lte:endOfMonth},
+                    },
+                },
+                {
+                    $group:{_id:null,total:{$sum:"$amount"}},
+                }
+            ]);
+
+            const totalSpent=monthlyExpenses[0]?.total || 0;
+
+            if (totalSpent>=user.budgetLimit){
+                await sendBudgetAlertsEmail(user.email,totalSpent,user.budgetLimit);
+                if(user.phoneNumber){
+                    await sendBudgetAlertsWhatsapp(user.phoneNumber,totalSpent,user.budgetLimit);
+                }
+            }
+        }
+
         res.status(201).json({message:"Successfully added expense!",expense});
     }
     catch(err){
