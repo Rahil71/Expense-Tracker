@@ -92,8 +92,8 @@ export const analyzeData=async(req,res)=>{
         const response=await groq.chat.completions.create({
             model: "llama-3.3-70b-versatile",
             messages:[
-                {role:"system",message:"You are an expert financial assistant that analyzes a user's expenses and provides helpful insights and budgeting suggestions."},
-                {role:"user",message:`Here is the user's expense data:\n${JSON.stringify(formattedData, null, 2)}\n\nUser's question: ${query}`}
+                {role:"system",content:"You are an expert financial assistant that analyzes a user's expenses and provides helpful insights and budgeting suggestions."},
+                {role:"user",content:`Here is the user's expense data:\n${JSON.stringify(formattedData, null, 2)}\n\nUser's question: ${query}`}
             ],
             temperature: 0.4
         });
@@ -102,6 +102,6 @@ export const analyzeData=async(req,res)=>{
         return res.status(201).json({message:aiResponse});
     }
     catch(err){
-        res.status(500).json({message:"AI cannot analyze your data at the moment!"});
+        res.status(500).json({message:"AI cannot analyze your data at the moment!",error:err.message});
     }
 };
