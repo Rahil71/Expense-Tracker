@@ -92,7 +92,7 @@ export const analyzeData=async(req,res)=>{
         const response=await groq.chat.completions.create({
             model: "llama-3.3-70b-versatile",
             messages:[
-                {role:"system",content:"You are an expert financial assistant that analyzes a user's expenses and provides helpful insights and budgeting suggestions."},
+                {role:"system",content:"You are an expert financial assistant that analyzes a user's expenses and provides helpful insights and budgeting suggestions for indian rupees."},
                 {role:"user",content:`Here is the user's expense data:\n${JSON.stringify(formattedData, null, 2)}\n\nUser's question: ${query}`}
             ],
             temperature: 0.4
