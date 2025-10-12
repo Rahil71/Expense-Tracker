@@ -1,4 +1,5 @@
 import Expense from "../models/Expense.js";
+import groq from "../config/groqClient.js";
 
 export const addExpense=async(req,res)=>{
     try{
@@ -67,5 +68,40 @@ export const updateExpense=async(req,res)=>{
     }
     catch(err){
         return res.status(500).json({message:err.message});
+    }
+};
+
+export const analyzeData=async(req,res)=>{
+    try{
+        const {query}=req.body;
+
+        const expenses=await Expense.find({user:req.user._id});
+
+        if(!expenses || expenses.length===0){
+            return res.status(400).json({message:"No expense available for processing!"});
+        }
+
+        const formattedData=expenses.map(exp=>({
+            title: exp.title,
+            amount: exp.amount,
+            category: exp.category,
+            date: exp.date.toISOString().split("T")[0],
+            notes: exp.notes || ""
+        }));
+
+        const response=await groq.chat.completions.create({
+            model: "llama-3.3-70b-versatile",
+            messages:[
+                {role:"system",message:"You are an expert financial assistant that analyzes a user's expenses and provides helpful insights and budgeting suggestions."},
+                {role:"user",message:`Here is the user's expense data:\n${JSON.stringify(formattedData, null, 2)}\n\nUser's question: ${query}`}
+            ],
+            temperature: 0.4
+        });
+
+        const aiResponse=response.choices[0]?.message?.content || "No response generated!";
+        return res.status(201).json({message:aiResponse});
+    }
+    catch(err){
+        res.status(500).json({message:"AI cannot analyze your data at the moment!"});
     }
 };
