@@ -17,6 +17,18 @@ const userSchema=new mongoose.Schema({
         type:String,
         required:true,
         minlength:6
+    },
+    budgetLimit:{
+        type:Number,
+        default:0
+    },
+    phoneNumber:{
+        type:String,
+        set:function(value){
+            if(!value) return value;
+            if(value.startsWith("+")) return value;
+            return `+91${value}`;
+        }
     }
 },{timestamps:true});
 
