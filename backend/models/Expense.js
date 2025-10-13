@@ -24,6 +24,9 @@ const expenseSchema=new mongoose.Schema({
     },
     notes:{
         type:String
+    },
+    receiptURL:{
+        type:String
     }
 },{timestamps:true});
 
