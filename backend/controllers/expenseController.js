@@ -3,18 +3,33 @@ import groq from "../config/groqClient.js";
 import User from "../models/User.js";
 import { sendBudgetAlertsEmail } from "../config/emailConfig.js";
 import { sendBudgetAlertsWhatsapp } from "../config/whatsappConfig.js";
-import PDFDocument from "pdfkit"
+import PDFDocument from "pdfkit";
+import cloudinary from "../config/cloudinaryConfig.js";
+import fs from "fs";
 
 export const addExpense=async(req,res)=>{
     try{
-        const {title,amount,category,date,notes}=req.body;
+        let bodyData = req.body.data ? JSON.parse(req.body.data) : req.body;
+        const { title, amount, category, date, notes } = bodyData;
+        // const {title,amount,category,date,notes}=req.body;
+
+        let receiptURL=null;
+
+        if(req.file){
+            const result=await cloudinary.uploader.upload(req.file.path,{
+                folder:"expense_receipts"
+            });
+            receiptURL=result.secure_url;
+            fs.unlinkSync(req.file.path);
+        }
         const expense=new Expense({
             user:req.user._id,
             title,
             amount,
             category,
             date,
-            notes
+            notes,
+            receiptURL
         });
         await expense.save();
 
