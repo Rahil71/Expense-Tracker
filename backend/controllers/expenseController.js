@@ -86,7 +86,7 @@ export const deleteExpense=async(req,res)=>{
             return res.status(401).json({message:"Not authorized!"});
         }
 
-        await Expense.deleteOne();
+        await expense.deleteOne();
         return res.status(200).json({message:"Expense deleted!"});
     }
     catch(err){
