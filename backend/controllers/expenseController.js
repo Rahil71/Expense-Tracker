@@ -57,17 +57,23 @@ export const addExpense=async(req,res)=>{
 
             if (totalSpent>=user.budgetLimit){
                 // await sendBudgetAlertsEmail(user.email,totalSpent,user.budgetLimit);
-                await fetch(`http://${process.env.EC2_PUBLIC_IPV4_ADDRESS}:4000/send-email`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        email: user.email,
-                        totalSpent,
-                        budgetLimit: user.budgetLimit
-                    })
-                });
+                try {
+                    const response = await fetch(`http://${process.env.EC2_PUBLIC_IPV4_ADDRESS}:4000/send-email`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            email: user.email,
+                            totalSpent,
+                            budgetLimit: user.budgetLimit
+                        })
+                    });
+
+                    const result = await response.json();
+                    console.log("Email response:", result);
+                } catch (error) {
+                    console.error("Email microservice error:", error.message);
+                }
+
                 if(user.phoneNumber){
                     await sendBudgetAlertsWhatsapp(user.phoneNumber,totalSpent,user.budgetLimit);
                 }
