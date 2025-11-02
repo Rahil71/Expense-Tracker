@@ -1,11 +1,14 @@
 import Expense from "../models/Expense.js";
 import groq from "../config/groqClient.js";
 import User from "../models/User.js";
-import { sendBudgetAlertsEmail } from "../config/emailConfig.js";
+// import { sendBudgetAlertsEmail } from "../config/emailConfig.js";
 import { sendBudgetAlertsWhatsapp } from "../config/whatsappConfig.js";
 import PDFDocument from "pdfkit";
 import cloudinary from "../config/cloudinaryConfig.js";
 import fs from "fs";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export const addExpense=async(req,res)=>{
     try{
@@ -53,7 +56,18 @@ export const addExpense=async(req,res)=>{
             const totalSpent=monthlyExpenses[0]?.total || 0;
 
             if (totalSpent>=user.budgetLimit){
-                await sendBudgetAlertsEmail(user.email,totalSpent,user.budgetLimit);
+                // await sendBudgetAlertsEmail(user.email,totalSpent,user.budgetLimit);
+                await fetch(`http://${process.env.EC2_PUBLIC_IPV4_ADDRESS}:4000/send-email`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        email: user.email,
+                        totalSpent,
+                        budgetLimit: user.budgetLimit
+                    })
+                });
                 if(user.phoneNumber){
                     await sendBudgetAlertsWhatsapp(user.phoneNumber,totalSpent,user.budgetLimit);
                 }
