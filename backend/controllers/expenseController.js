@@ -114,6 +114,21 @@ export const deleteExpense=async(req,res)=>{
     }
 };
 
+
+export const deleteAllExpenses = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const result = await Expense.deleteMany({ user: userId });
+
+    return res.status(200).json({
+      message: `Deleted ${result.deletedCount} expense(s) successfully!`
+    });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
 export const updateExpense=async(req,res)=>{
     try{
         const expense=await Expense.findById(req.params.id);
@@ -136,6 +151,28 @@ export const updateExpense=async(req,res)=>{
     catch(err){
         return res.status(500).json({message:err.message});
     }
+};
+
+export const updateBudgetLimit = async (req, res) => {
+  try {
+    const { newLimit } = req.body;
+
+    if (newLimit === undefined || isNaN(newLimit)) {
+      return res.status(400).json({ message: "Please provide a valid budget limit!" });
+    }
+
+    const user = await User.findById(req.user._id);
+    user.budgetLimit = newLimit;
+    await user.save();
+
+    return res.status(200).json({
+      message: "Budget limit updated successfully!",
+      budgetLimit: user.budgetLimit
+    });
+
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
 };
 
 export const analyzeData=async(req,res)=>{
