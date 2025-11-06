@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Use UI font everywhere */
+html, body, #root {
+  @apply font-ui;
+}
+
+/* Align numbers in tables (amounts) */
+:root {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+.tnum {
+  font-variant-numeric: tabular-nums lining-nums;
+}
